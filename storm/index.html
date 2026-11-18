@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Storm AI Creative Workspace：从工作区架构、交互规范到前端交付的完整产品设计案例。">
+  <title>Storm · AI Creative Workspace</title>
+  <style>
+    :root{--bg:#0c0e0d;--paper:#f2f0e8;--ink:#141613;--muted:#a9ada4;--line:rgba(242,240,232,.2);--accent:#9d8cff;--lime:#d6ee55;--serif:"Iowan Old Style","Baskerville","Songti SC","STSong",serif;--sans:"Helvetica Neue","PingFang SC","Microsoft YaHei",sans-serif}
+    *{box-sizing:border-box}html{scroll-behavior:smooth;background:var(--bg)}body{margin:0;color:var(--paper);background:var(--bg);font-family:var(--sans);-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}img{display:block;max-width:100%}::selection{color:#111;background:var(--lime)}
+    body:before{content:"";position:fixed;z-index:20;inset:0;pointer-events:none;opacity:.09;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.42'/%3E%3C/svg%3E")}
+    .nav{position:absolute;z-index:12;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:24px clamp(20px,4vw,64px);font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase}.back{display:flex;align-items:center;gap:9px}.back:hover{color:var(--lime)}.nav-label{color:rgba(255,255,255,.58)}
+    .hero{position:relative;isolation:isolate;display:flex;justify-content:flex-end;align-items:center;min-height:94svh;overflow:hidden;padding:110px clamp(24px,5vw,80px) 70px;text-align:left}.hero img{position:absolute;z-index:-3;inset:0 auto 0 0;width:64%;height:100%;object-fit:cover;object-position:center 46%}.hero:before{content:"";position:absolute;z-index:-2;inset:0;background:linear-gradient(90deg,rgba(12,14,13,.05) 0%,rgba(12,14,13,.10) 34%,rgba(12,14,13,.78) 58%,#0c0e0d 78%),linear-gradient(0deg,#0c0e0d 0%,rgba(12,14,13,.40) 26%,rgba(12,14,13,.05) 76%,rgba(12,14,13,.12) 100%)}.hero:after{content:"";position:absolute;z-index:-1;inset:0;background:radial-gradient(ellipse at 65% 50%,rgba(5,6,5,.20),rgba(5,6,5,0) 55%)}
+    .hero-copy{width:min(43%,650px);display:flex;flex-direction:column;align-items:flex-start}.eyebrow{margin:0 0 22px;color:var(--lime);font-size:10px;font-weight:700;letter-spacing:.19em;text-transform:uppercase}.hero h1{margin:0;font:400 clamp(82px,11vw,170px)/.72 var(--serif);letter-spacing:-.07em}.hero h2{max-width:15ch;margin:38px 0 0;font:400 clamp(27px,3.6vw,56px)/1.08 var(--serif);letter-spacing:-.035em}.hero p{max-width:50ch;margin:25px 0 0;color:#d0d2ca;font-size:14px;line-height:1.9}.hero-actions{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:10px;margin-top:34px}.button{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border:1px solid rgba(255,255,255,.36);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;transition:.25s}.button.primary{color:#111;background:var(--lime);border-color:var(--lime)}.button:hover{transform:translateY(-2px);border-color:#fff}
+    .section{padding:clamp(74px,10vw,150px) clamp(22px,5vw,80px)}.section.light{color:var(--ink);background:#eceae3}.section-head{display:grid;grid-template-columns:minmax(0,.7fr) minmax(420px,1.3fr);gap:50px;align-items:start;margin-bottom:52px}.index{color:var(--accent);font-size:10px;font-weight:700;letter-spacing:.17em;text-transform:uppercase}.section h2{max-width:14ch;margin:0;font:400 clamp(42px,6vw,88px)/.97 var(--serif);letter-spacing:-.05em}.lead{max-width:58ch;margin:5px 0 0;color:var(--muted);font-size:16px;line-height:1.9}.light .lead{color:#656960}.frame{overflow:hidden;border:1px solid var(--line);background:#fff;box-shadow:0 34px 90px rgba(0,0,0,.22)}.light .frame{border-color:rgba(20,22,19,.16)}.frame img{width:100%;height:auto}.caption{display:flex;justify-content:space-between;gap:20px;margin-top:13px;color:#858a80;font-size:10px;letter-spacing:.08em}
+    .zones{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;margin-top:28px;background:rgba(255,255,255,.16)}.zone{min-height:230px;padding:28px;background:#131614}.zone b{display:block;color:var(--lime);font-size:10px;letter-spacing:.14em}.zone h3{margin:36px 0 12px;font:400 29px/1.05 var(--serif)}.zone p{margin:0;color:#9fa49a;font-size:13px;line-height:1.75}
+    .island{display:grid;grid-template-columns:minmax(280px,.8fr) minmax(0,1.2fr);gap:clamp(36px,8vw,130px);align-items:center}.island-word{font:italic 400 clamp(86px,14vw,210px)/.7 var(--serif);letter-spacing:-.08em;color:var(--accent)}.island-copy blockquote{margin:0;font:400 clamp(32px,4.5vw,65px)/1.12 var(--serif);letter-spacing:-.04em}.island-copy p{max-width:50ch;margin:28px 0 0;color:#696d65;font-size:15px;line-height:1.9}
+    .spec-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.6fr);gap:36px;align-items:start}.spec-aside{position:sticky;top:24px;display:grid;gap:1px;background:var(--line)}.spec-point{padding:25px;background:#121513}.spec-point b{color:var(--accent);font-size:10px;letter-spacing:.12em}.spec-point h3{margin:12px 0 8px;font:400 24px/1.1 var(--serif)}.spec-point p{margin:0;color:#9fa49a;font-size:12px;line-height:1.75}
+    .boundary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.boundary{display:grid;grid-template-columns:52px 1fr;gap:20px;min-height:185px;padding:28px;border:1px solid rgba(20,22,19,.18);background:#f4f2ec}.boundary span{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:var(--ink);color:var(--paper);font-size:11px}.boundary h3{margin:0 0 10px;font:400 25px/1.08 var(--serif)}.boundary p{margin:0;color:#676b63;font-size:13px;line-height:1.75}
+    .handoff{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:55px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.handoff-step{position:relative;padding:30px 24px 36px;border-right:1px solid var(--line)}.handoff-step:last-child{border-right:0}.handoff-step small{color:var(--accent);font-size:9px;letter-spacing:.14em}.handoff-step strong{display:block;margin-top:25px;font:400 26px/1.12 var(--serif)}.handoff-step p{margin:12px 0 0;color:#999e94;font-size:12px;line-height:1.7}
+    .result{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:50px;align-items:end;padding-top:55px}.result p{max-width:45ch;margin:0;font:400 clamp(30px,4.8vw,72px)/1.08 var(--serif);letter-spacing:-.04em}.result p em{color:var(--lime);font-style:normal}.result .button{min-width:210px}
+    footer{display:flex;justify-content:space-between;gap:25px;padding:28px clamp(22px,5vw,80px);border-top:1px solid var(--line);color:#7e837a;font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+    @media(max-width:900px){.hero{align-items:flex-end;justify-content:flex-start;min-height:900px;padding-bottom:60px;text-align:left}.hero img{inset:0 0 auto;width:100%;height:54%;object-position:center 38%}.hero:before{background:linear-gradient(180deg,rgba(12,14,13,.04) 0%,rgba(12,14,13,.12) 29%,#0c0e0d 54%,#0c0e0d 100%)}.hero:after{display:none}.hero-copy{width:100%;align-items:flex-start}.hero h1{font-size:clamp(90px,24vw,150px)}.hero h2,.hero p{margin-left:0}.hero-actions{justify-content:flex-start}.section-head,.island,.spec-layout{grid-template-columns:1fr}.section-head{gap:24px}.zones{grid-template-columns:1fr 1fr}.spec-aside{position:static;grid-template-columns:1fr 1fr}.handoff{grid-template-columns:1fr 1fr}.handoff-step:nth-child(2){border-right:0}.handoff-step:nth-child(-n+2){border-bottom:1px solid var(--line)}.result{grid-template-columns:1fr;align-items:start}}
+    @media(max-width:560px){.nav-label{display:none}.hero{min-height:860px;padding-inline:20px}.hero img{height:42%;object-position:center 38%}.hero:before{background:linear-gradient(180deg,rgba(12,14,13,.03) 0%,rgba(12,14,13,.08) 20%,#0c0e0d 42%,#0c0e0d 100%)}.hero h2{margin-top:28px}.hero p{font-size:13px}.section{padding-inline:18px}.zones,.spec-aside,.boundary-grid,.handoff{grid-template-columns:1fr}.zone{min-height:185px}.spec-aside{gap:1px}.boundary{grid-template-columns:42px 1fr;padding:22px 18px}.handoff-step{border-right:0;border-bottom:1px solid var(--line)}.handoff-step:last-child{border-bottom:0}.caption{flex-direction:column;gap:5px}.island-word{font-size:110px}.result .button{width:100%}footer{flex-direction:column}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.button{transition:none}.button:hover{transform:none}}
+  </style>
+</head>
+<body>
+  <nav class="nav"><a class="back" href="/">← 返回作品集</a><span class="nav-label">Product Design · 04</span></nav>
+  <header class="hero">
+    <img src="../assets/storm-creative-flow-cover.png" alt="蓝色超现实创作世界拼贴，呈现人物、城市与想象空间" width="960" height="1165">
+    <div class="hero-copy">
+      <p class="eyebrow">AI Creative Workspace</p>
+      <h1>Storm</h1>
+      <h2>保护创作心流</h2>
+      <p>我围绕用户真实的工作路径，划分工作区、环岛区与重要信息存放区，让创作者专注于当前任务，降低认知功能切换成本。系统充分尊重个人意愿：是否暂停或终止当前创作、是否开启新的分支流程，始终由用户决定。</p>
+      <div class="hero-actions"><a class="button primary" href="#architecture">查看设计过程</a><a class="button" href="https://jufeng-episode-demo-1028.laurenf-0826.chatgpt.site/" target="_blank" rel="noopener">打开交互 Demo ↗</a></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section" id="architecture">
+      <div class="section-head"><span class="index">01 / Workspace Architecture</span><div><h2>把认知资源留给创作</h2><p class="lead">我沿着用户真实的工作路径，将全局定位、任务上下文、核心工作和重要信息分为四个稳定区域。清晰的信息分类减少来回寻找与功能切换；分支流程保持可见但不主动侵入，让用户始终决定何时中断、何时继续，以及是否开启新的创作路径。</p></div></div>
+      <figure>
+        <div class="frame"><img src="assets/storm-workspace.png" alt="Storm 四区工作空间全景" width="1976" height="974" loading="lazy"></div>
+        <figcaption class="caption"><span>完整页面结构 · 剧本工作区</span><span>主导航 / 环岛 / 核心工作区 / 重要但不紧急功能区</span></figcaption>
+      </figure>
+      <div class="zones">
+        <article class="zone"><b>01 / GLOBAL</b><h3>主导航</h3><p>承载跨模块定位、更新与核验任务、项目分组以及个人资源，让全局状态始终可达。</p></article>
+        <article class="zone"><b>02 / CONTEXT</b><h3>环岛区</h3><p>保留当前模块中的项目、内容和版本关系，在快速切换时维持中央任务上下文。</p></article>
+        <article class="zone"><b>03 / FOCUS</b><h3>核心工作区</h3><p>只承载当前最重要、最需要持续注意的阅读与编辑任务，减少功能对专注的干扰。</p></article>
+        <article class="zone"><b>04 / SUPPORT</b><h3>重要信息区</h3><p>放置 AI 改写、文件信息和低频操作：保持重要信息可见，但不与核心任务争夺注意力。</p></article>
+      </div>
+    </section>
+
+    <section class="section light">
+      <div class="island">
+        <div class="island-word">Island</div>
+        <div class="island-copy"><blockquote>环岛不是二级导航，而是主导航与工作区之间的上下文缓冲层。</blockquote><p>它让用户能够在项目、剧本和版本之间快速切换，同时保持中央工作区与操作状态稳定。相比把层级不断塞进面包屑或弹窗，它利用固定空间建立可预测的工作节奏。</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><span class="index">02 / Interaction Specification</span><div><h2>高保真不是画得像，而是定义得完整</h2><p class="lead">一份可交付的交互稿不仅要呈现最终页面，还需要回答组件在什么条件下变化、系统怎样反馈、数据是否保留、失败后如何恢复，以及下一步允许用户做什么。</p></div></div>
+      <div class="spec-layout">
+        <figure><div class="frame"><img src="assets/storm-interaction-spec.png" alt="Storm 图片编辑操作区交互规范，包含组件状态、版本、上传、加载与生成操作" width="2016" height="1374" loading="lazy"></div><figcaption class="caption"><span>图片编辑操作区 · 交互规范</span><span>基础控件 → 操作模块 → 真实母组件 → 完整页面</span></figcaption></figure>
+        <aside class="spec-aside">
+          <article class="spec-point"><b>STATE</b><h3>组件状态完整</h3><p>默认、悬停、按下、禁用、已应用、Tooltip、不定进度与展开收起均有明确定义。</p></article>
+          <article class="spec-point"><b>TRANSITION</b><h3>行为链可追踪</h3><p>把用户动作、系统状态、界面反馈和下一步操作连成一条可实现的状态转换。</p></article>
+          <article class="spec-point"><b>DATA</b><h3>数据关系不含糊</h3><p>旧版本、图片和应用关系如何保留，以及何时产生新版本，都在交互稿中写清楚。</p></article>
+          <article class="spec-point"><b>HANDOFF</b><h3>前端实现有依据</h3><p>稿件同时给出视觉状态、触发条件和恢复路径，减少产品、设计与研发之间的信息损耗。</p></article>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section light">
+      <div class="section-head"><span class="index">03 / Edge Cases</span><div><h2>边界情况不是补充项</h2><p class="lead">AI 生成可能失败、耗时不可预测，结果也不一定可用。Storm 把这些不确定性提前纳入产品状态，而不是在开发阶段依赖临时补逻辑。</p></div></div>
+      <div class="boundary-grid">
+        <article class="boundary"><span>01</span><div><h3>失败仍可恢复</h3><p>提取失败时保留当前版本并允许重试，避免用户因为一次失败丢失已有工作。</p></div></article>
+        <article class="boundary"><span>02</span><div><h3>新操作不覆盖旧结果</h3><p>新建版本或重新提取不会覆盖旧版本，历史图片与应用关系继续保留。</p></div></article>
+        <article class="boundary"><span>03</span><div><h3>系统不制造虚假确定性</h3><p>无法准确预测生成时长时使用不定进度反馈，不展示没有依据的加载百分比。</p></div></article>
+        <article class="boundary"><span>04</span><div><h3>AI 不替代最终判断</h3><p>重试成功后仍由用户主动触发生成，关键生产动作保留明确的人工确认。</p></div></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><span class="index">04 / Front-end Handoff</span><div><h2>把产品判断交付成可实现的页面行为</h2><p class="lead">从母组件、状态规则到完整页面和可操作 Demo，Storm 展示的不只是视觉结果，而是产品逻辑如何逐层落地。</p></div></div>
+      <div class="handoff">
+        <article class="handoff-step"><small>STEP 01</small><strong>基础控件</strong><p>建立按钮、图钉、版本入口、加载和反馈状态。</p></article>
+        <article class="handoff-step"><small>STEP 02</small><strong>操作模块</strong><p>组合上传、参数、版本与生成操作，明确依赖关系。</p></article>
+        <article class="handoff-step"><small>STEP 03</small><strong>完整页面</strong><p>把模块放回真实工作区，验证信息层级与任务节奏。</p></article>
+        <article class="handoff-step"><small>STEP 04</small><strong>交互 Demo</strong><p>用可操作原型对齐关键行为、页面转换和研发实现。</p></article>
+      </div>
+      <div class="result"><p>工具优化与生成质量改进共同推动自制团队制作效率提升 <em>20%</em>。</p><a class="button primary" href="https://jufeng-episode-demo-1028.laurenf-0826.chatgpt.site/" target="_blank" rel="noopener">进入 Storm Demo ↗</a></div>
+    </section>
+  </main>
+  <footer><span>Storm · AI Creative Workspace</span><span>Product Design by Jingyi Fang</span></footer>
+</body>
+</html>
