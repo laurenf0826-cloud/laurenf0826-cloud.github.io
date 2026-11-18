@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="沿着可翻页的流程读 Transformer。包含完整六章课件、注意力计算和训练生成对照。">
+  <title>我的 Transformer 学习笔记 | Lauren Fang</title>
+  <link rel="stylesheet" href="note.css">
+  <script src="note.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><a href="/#ai-notes">← 作品集</a><span>Lauren Fang</span><a href="transformer-course.pdf" download="Transformer架构教学课件.pdf">下载 PDF ↘</a></header>
+  <main>
+    <header class="cover wrap">
+      <div class="cover-copy">
+        <p class="series">AI 学习笔记</p>
+        <h1>Transformer<span>架构</span></h1>
+        <p class="intro">一句话进了 GPT，<br>下一段文字是怎么接出来的？</p>
+        <p class="cover-note">先展开流程，看训练和生成从哪里分开。<br class="wide">再打开任意一步，跟着例子算下去。</p>
+        <a class="ink-button" href="#flow">看全流程 <span aria-hidden="true">↓</span></a>
+      </div>
+      <figure class="cover-photo"><img src="/assets/transformer-terrain.webp" width="966" height="998" alt="金色点阵沿着苔绿色的山脊起伏" fetchpriority="high"></figure>
+    </header>
+    <section class="flow wrap" id="flow" aria-labelledby="flow-title">
+      <header class="flow-heading"><div><h2 id="flow-title">从文字到下一个 token</h2><p>点亮一个步骤，翻看它对应的课件。垂下来的苹果里有这个环节的追问。</p></div><span class="slide-hint" aria-hidden="true">横向滑动 ↔</span></header>
+      <div class="flow-inputs"><span><b>训练输入</b> 完整原文</span><span><b>使用输入</b> 提示词</span><span>→ 共用模型计算</span></div>
+      <div class="rail-scroll" aria-label="可横向滚动的流程">
+        <nav class="rail" aria-label="Transformer 全流程">
+          <div class="shared-rail"><div class="station station-overview">
+      <a href="#overview" class="station-button" data-stage="overview" aria-current="step">先看全程</a>
+      <div class="hanging"><div class="fruit"><button type="button" class="apple" data-apple="architectures" data-owner="overview" aria-controls="question-architectures" aria-expanded="false"><span class="apple-icon" aria-hidden="true"></span><span class="fruit-text">Encoder 和 Decoder 有什么区别？</span></button><span class="fruit-peek" aria-hidden="true">区别先看当前位置能参考谁。</span></div></div>
+    </div><div class="station station-tokens">
+      <a href="#tokens" class="station-button" data-stage="tokens">分词与 ID</a>
+      <div class="hanging"><div class="fruit"><button type="button" class="apple" data-apple="encode" data-owner="tokens" aria-controls="question-encode" aria-expanded="false"><span class="apple-icon" aria-hidden="true"></span><span class="fruit-text">encode 就是 Encoder 吗？</span></button><span class="fruit-peek" aria-hidden="true">一个发生在分词，一类是网络层。</span></div></div>
+    </div><div class="station station-embedding">
+      <a href="#embedding" class="station-button" data-stage="embedding">向量与位置</a>
+      <div class="hanging"><div class="fruit"><button type="button" class="apple" data-apple="embedding-types" data-owner="embedding" aria-controls="question-embedding-types" aria-expanded="false"><span class="apple-icon" aria-hidden="true"></span><span class="fruit-text">Embedding 有几种意思？</span></button><span class="fruit-peek" aria-hidden="true">查表向量、上下文向量和检索向量各有用途。</span></div><div class="fruit"><button type="button" class="apple" data-apple="rope" data-owner="embedding" aria-controls="question-rope" aria-expanded="false"><span class="apple-icon" aria-hidden="true"></span><span class="fruit-text">RoPE 旋转了什么？</span></button><span class="fruit-peek" aria-hidden="true">通过 Q、K 的坐标把相对位置带进打分。</span></div></div>
+    </div><div class="station station-layers">
+      <a href="#layers" class="station-button" data-stage="layers">逐层计算</a>
+      <div class="hanging"><div class="fruit"><button type="button" class="apple" data-apple="weights" data-owner="layers" aria-controls="question-weights" aria-expanded="false"><span class="apple-icon" aria-hidden="true"></span><span class="fruit-text">WQ 和 Q 有什么区别？</span></button><span class="fruit-peek" aria-hidden="true">WQ 是参数，Q 是本次计算的结果。</span></div></div>
+    </div><div class="station station-logits">
+      <a href="#logits" class="station-button" data-stage="logits">词表打分</a>
+      <div class="hanging"><div class="fruit"><button type="button" class="apple" data-apple="softmax" data-owner="logits" aria-controls="question-softmax" aria-expanded="false"><span class="apple-icon" aria-hidden="true"></span><span class="fruit-text">为什么会有两次 Softmax？</span></button><span class="fruit-peek" aria-hidden="true">注意力对位置算，输出端对词表算。</span></div></div>
+    </div></div>
+          <div class="fork-rail"><span>训练路径</span><span>使用路径</span><div class="station station-training">
+      <a href="#training" class="station-button" data-stage="training">训练</a>
+      <div class="hanging"><div class="fruit"><button type="button" class="apple" data-apple="mask" data-owner="training" aria-controls="question-mask" aria-expanded="false"><span class="apple-icon" aria-hidden="true"></span><span class="fruit-text">完整原文为什么不会泄漏？</span></button><span class="fruit-peek" aria-hidden="true">右侧答案只用于核对当前位置预测。</span></div></div>
+    </div><div class="station station-generation">
+      <a href="#generation" class="station-button" data-stage="generation">生成</a>
+      <div class="hanging"><div class="fruit"><button type="button" class="apple" data-apple="cache" data-owner="generation" aria-controls="question-cache" aria-expanded="false"><span class="apple-icon" aria-hidden="true"></span><span class="fruit-text">KV Cache 缓存了什么？</span></button><span class="fruit-peek" aria-hidden="true">各层以前位置的 K 和 V。</span></div></div>
+    </div></div>
+          <div class="station station-review">
+      <a href="#review" class="station-button" data-stage="review">复盘与应用</a>
+      <div class="hanging"><div class="fruit"><button type="button" class="apple" data-apple="rag-embedding" data-owner="review" aria-controls="question-rag-embedding" aria-expanded="false"><span class="apple-icon" aria-hidden="true"></span><span class="fruit-text">Late Chunking 为什么先读全文？</span></button><span class="fruit-peek" aria-hidden="true">让后一段里的代词先结合前段上下文。</span></div></div>
+    </div>
+        </nav>
+      </div>
+      <div class="drawer" data-light="on">
+        <div class="lamp-fixture" aria-hidden="true"><span class="lamp-wire"></span><span class="lamp-shade"></span><span class="lamp-bulb"></span></div>
+        <div class="lamp-wash" aria-hidden="true"></div>
+        <div class="drawer-top" aria-label="课件翻页">
+          <span id="page-count" aria-live="polite">步骤 1 / 8</span>
+          <div class="pager"><button type="button" id="previous-page">← 上一步</button><button type="button" id="next-page">下一步 →</button></div>
+        </div>
+        <div class="lesson-stack"><article class="lesson" id="overview" aria-labelledby="heading-overview">
+      <header class="lesson-header"><p>先看全程</p><h2 id="heading-overview" tabindex="-1">训练和使用，从哪一步开始不一样？</h2><div>先把两条路放到同一张图里。接下来，每盏灯照出一个环节，用例子讲清这一站发生了什么。</div></header>
+      <div class="apple-answers"><aside class="apple-answer" id="question-architectures" tabindex="-1">
+      <div><span class="apple-icon" aria-hidden="true"></span><h3>Encoder 和 Decoder 有什么区别？</h3><button type="button" class="question-close" data-close="architectures" aria-label="收起这个问题">×</button></div>
+      <p>BERT 的 Encoder 可结合左右两侧。GPT 的 Decoder 对当前序列只看自己和左侧。T5 的 Decoder 还通过交叉注意力读取 Encoder 已处理的输入。</p>
+    </aside></div>
+
+<section class="lab" aria-label="双向和因果注意力实验">
+  <h3>点一个位置，看它能参考谁</h3>
+  <div class="control-row" role="group" aria-label="模型类型">
+    <button type="button" data-model="encoder" aria-pressed="true">BERT · 双向</button>
+    <button type="button" data-model="decoder" aria-pressed="false">GPT · 因果</button>
+  </div>
+  <div class="control-row token-row" role="group" aria-label="观察位置">
+    <button type="button" data-position="0" data-visible="true" aria-pressed="false">巴西旅客</button>
+    <button type="button" data-position="1" data-visible="true" aria-pressed="true">去</button>
+    <button type="button" data-position="2" data-visible="true" aria-pressed="false">美国</button>
+  </div>
+  <p id="visibility-result" aria-live="polite">更新「去」时，可参考「巴西旅客」、「去」、「美国」。</p>
+</section>
+      <div class="lesson-copy"><details class="course-details" open><summary>先从一句话看注意力</summary><div><p>把「巴西旅客去美国」暂时分成「巴西旅客｜去｜美国」。每个位置通过注意力从允许访问的位置取信息。我们盯住中间的「去」，比较两种主干在更新这个位置时能参考什么。</p>
+<ul><li>BERT 的 Encoder：用双向自注意力，「去」可以同时参考左边的「巴西旅客」和右边的「美国」，也能参考自己。</li><li>GPT 的 Decoder：用因果自注意力，「去」可以参考「巴西旅客」和自己。「美国」的位置可以参考这三个部分。完整提示词进入 GPT 后，当前位置在提示词末尾，模型就能利用整个提示词来生成回答。</li></ul>
+<p>Google 曾用 BERT 改进搜索结果排序，并公开过类似的例子：查询巴西旅客去美国的签证问题，早期系统曾给出美国人去巴西的结果。两种说法共享关键词，出发方与目的地却对调了。把「去」与两侧的文字放在一起处理，有助于搜索系统判断结果与查询意图是否相关。</p>
+<p>参考：Google Search，Understanding searches better than ever before（2019），<a href="https://blog.google/products-and-platforms/products/search/search-language-understanding-bert/">Google 的原文 ↗</a></p></div></details><details class="course-details"><summary>三种架构怎样分工</summary><div><ul><li>Encoder-only（例如 BERT）：每个输入位置都能结合双向上下文，得到一组向量。其他模块可利用这些向量做检索匹配、分类或抽取。</li><li>Decoder-only（例如标准 GPT）：提示词和回答出现在同一条序列上。因果自注意力允许回答位置同时利用前面的提示词与已生成内容。训练与生成共用这套 Decoder 主干。</li><li>Encoder–Decoder（例如原始 Transformer、T5）：Encoder 处理完整输入，Decoder 另起一条输出序列，用因果自注意力看已经存在的输出，再用交叉注意力读取 Encoder 的输出。</li></ul>
+<h4>一个中译英例子</h4>
+<p>把「白兰地在笼子里唱歌」交给 T5 这类模型。Encoder 先为源句每个位置算出双向上下文向量。假设 Decoder 已经生成「Brandy is singing」，下一步预测时，Decoder 的自注意力查看这些已生成的英文，交叉注意力则可以读取整句中文里的「笼子」等线索，帮助生成「in the cage」一类的后续内容。这个译文用于示意计算过程。</p>
+<p>在交叉注意力里，Q 来自 Decoder 当前状态，K、V 来自 Encoder 输出。自注意力的 Q、K、V 来自同一条序列。后文以 GPT 为主，第四、五章会回到语言模型具体怎样预测下一个 token。</p>
+<aside class="margin-note">可见范围：双向和因果描述的是每个位置在自注意力中能参考哪些位置。Encoder–Decoder 的 Decoder 同时有两条信息通路：因果自注意力读输出前缀，交叉注意力读输入。</aside></div></details></div>
+      <a class="page-reference" href="transformer-course.pdf#page=2">查看课件第 2 页 ↗</a>
+    </article><article class="lesson" id="tokens" aria-labelledby="heading-tokens">
+      <header class="lesson-header"><p>分词与 ID</p><h2 id="heading-tokens" tabindex="-1">一句话进来，Tokenizer 交给模型什么？</h2><div>先跟着「白兰地喜欢吃小米」看文字怎样被切开，以及为什么 token ID 只是一个索引。</div></header>
+      <div class="apple-answers"><aside class="apple-answer" id="question-encode" tabindex="-1">
+      <div><span class="apple-icon" aria-hidden="true"></span><h3>encode 就是 Encoder 吗？</h3><button type="button" class="question-close" data-close="encode" aria-label="收起这个问题">×</button></div>
+      <p>Tokenizer 的 encode 把文字变成 token ID。Transformer Encoder 则更新向量。标准 GPT 的训练和生成都使用 Decoder 主干。</p>
+    </aside></div>
+
+      <div class="lesson-copy"><details class="course-details" open><summary>名字相似，发生在不同环节</summary><div><ul><li>Tokenizer 的 encode：把文字切成 token，再转成 ID。标准 GPT 的训练文本和生成时的提示词都要做这一步。</li><li>Embedding 层：按 token ID 查表，取出该 token 的初始向量。</li><li>Transformer Encoder：用网络层更新输入向量。标准 GPT 在训练和生成时都使用 Decoder 主干。</li><li>Transformer Decoder：标准 GPT 以因果自注意力更新各位置向量。每个位置能参考自己和前文。</li><li>推理的 Decode 阶段：Prefill 处理完提示词后，用同一套 Decoder 逐步生成。Tokenizer 的 decode 则负责把选出的 token ID 转回文字。</li></ul>
+<h4>白兰地是鸟还是酒</h4>
+<p>比较「白兰地在笼子里唱歌」与「白兰地倒进杯子里」。假设两句开头分成相同的 token，它们的初始 Embedding 相同。在 BERT 里，开头的位置经过 Encoder 后可以利用「笼子里唱歌」或「倒进杯子里」来更新自己的表示。在 GPT 里，句首位置只能参考自己与已有前缀，句末位置则可以结合整句的信息。</p>
+<h4>顺序与可见范围</h4>
+<p>位置机制让模型区分先后与距离。注意力的 Mask 决定哪些位置可以提供信息。比如 GPT 同时收到「小鸟｜在｜唱歌」，「在」有自己的位置信息，但它在自注意力中只可使用「小鸟」和自己。</p></div></details><details class="course-details"><summary>Tokenizer 与词表</summary><div><h4>Token 不一定是一个词</h4>
+<p>句子“白兰地喜欢吃小米。”可能被切成“白兰地｜喜欢｜吃｜小米｜。”，也可能被拆得更细。token 可以是汉字、词、英文词的一部分、标点、空格或特殊角色标记。</p>
+<h4>词表怎样形成</h4>
+<p>训练大模型前，通常先使用 BPE、Unigram 等方法分析大量文本。经常共同出现的字符片段可能被合并为一个 token，最终形成固定词表。</p>
+<pre tabindex="0"><code>白兰地 -&gt; ID 15382    爸爸 -&gt; ID 984    它 -&gt; ID 312</code></pre>
+<p>ID 只是索引。15382 并不比 984 更有意义，也不表示前者更复杂。</p>
+<h4>聊天中的角色标记</h4>
+<p>系统规则、用户问题和助手回答会被特殊 token 分隔，例如 system、user 和 assistant 标记。这些标记帮助模型学习不同文本片段的角色。</p>
+<aside class="margin-note">易错点：Tokenizer 决定怎样切文本；Embedding 决定怎样把 token ID 变成向量。两者不是同一步。</aside></div></details></div>
+      <a class="page-reference" href="transformer-course.pdf#page=5">查看课件第 5 页 ↗</a>
+    </article><article class="lesson" id="embedding" aria-labelledby="heading-embedding">
+      <header class="lesson-header"><p>向量与位置</p><h2 id="heading-embedding" tabindex="-1">查完 Embedding 表，模型怎么知道词的顺序？</h2><div>同一个 token 可取到同一行初始向量。位置机制和后续注意力计算再分别加入顺序与上下文。</div></header>
+      <div class="apple-answers"><aside class="apple-answer" id="question-embedding-types" tabindex="-1">
+      <div><span class="apple-icon" aria-hidden="true"></span><h3>Embedding 有几种意思？</h3><button type="button" class="question-close" data-close="embedding-types" aria-label="收起这个问题">×</button></div>
+      <p>GPT 的 Embedding 层按 token ID 取初始向量。Transformer 层加工后得到各位置的上下文向量。检索模型常将一组 token 表示池化成段落向量，用来比较文本。</p>
+    </aside><aside class="apple-answer" id="question-rope" tabindex="-1">
+      <div><span class="apple-icon" aria-hidden="true"></span><h3>RoPE 旋转了什么？</h3><button type="button" class="question-close" data-close="rope" aria-label="收起这个问题">×</button></div>
+      <p>对采用 RoPE 的模型，位置决定 Q、K 的旋转角度。旋转在两者打分之前，标准做法通常不旋转 V。</p>
+    </aside></div>
+
+      <div class="lesson-copy"><details class="course-details" open><summary>Embedding 与初始向量</summary><div><h4>查表过程</h4>
+<p>若词表大小为 V、隐藏维度为 d，Embedding 表就是一个 V×d 的参数矩阵。每个 token ID 对应其中一行。</p>
+<pre tabindex="0"><code>E in R^(V x d)    token_id = 15382    x = E[15382]</code></pre>
+<p>假设词表有 100000 个 token，隐藏维度为 4096，那么 Embedding 表就是 100000 行、4096 列。</p>
+<h4>Embedding 数字怎样获得</h4>
+<p>训练刚开始时，表中的数字通常是小随机数。模型预测下一个 token 出错后，反向传播会修改 Embedding 和其他参数。海量训练后，向量关系才逐渐形成。</p>
+<h4>向量维度是什么意思</h4>
+<p>通常不能说某一维固定代表动物、某一维固定代表情绪。意义分散在许多维度的组合关系中，这叫分布式表征。</p>
+<h4>初始表示与上下文表示</h4>
+<p>Embedding 只表示 token 的初始状态。同一个 token 对应同一行初始 Embedding。后续 Transformer 会结合它可见的上下文，得到随语境变化的表示。</p>
+<aside class="margin-note">记住：Embedding 是 token 的初始表示，还没有充分融合当前句子的上下文。</aside></div></details><details class="course-details"><summary>位置编码与上下文向量</summary><div><p>“白兰地喜欢爸爸”和“爸爸喜欢白兰地”使用相同 token，顺序却改变了语义。因此模型必须知道谁在前、谁在后以及相距多远。</p>
+<h4>原始位置编码</h4>
+<p>原始 Transformer 会把位置编码与 token Embedding 结合。</p>
+<pre tabindex="0"><code>X_0 = Token Embedding + Position Encoding</code></pre>
+<h4>RoPE</h4>
+<p>很多现代 GPT 类模型使用 RoPE。它按照 token 位置旋转 Q、K，使 QK 点积能够感知相对位置和距离。</p>
+<p>这里的“按照位置旋转”不是随机转动，也不是把 token 从句子里的一个位置搬到另一个位置。每个 token 都有一个确定的位置编号 p=0、1、2、3……；RoPE 用“位置编号 × 这一组维度的固定旋转速度”算出角度。</p>
+<pre tabindex="0"><code>第 i 组二维维度的旋转角度 theta(p,i) = 位置 p × 固定频率 omega_i</code></pre>
+<h4>到底在哪里旋转</h4>
+<p>Q、K 是高维向量。RoPE 会在每个注意力头内部，把 Q、K 的维度两两分组，例如 (q0,q1)、(q2,q3)、(q4,q5)……每两个数字构成一个抽象的二维坐标平面，并在这个平面内旋转。token 在句子中的位置不变，变化的是 Q、K 的坐标。</p>
+<pre tabindex="0"><code>Q、K 生成 -&gt; 按位置旋转 Q、K -&gt; 旋转后的 QK 点积 -&gt; 注意力分数</code></pre>
+<p>RoPE 发生在 Q=XWQ、K=XWK 之后，QK 点积之前。V 通常不旋转，因为 Q、K 负责决定“关注哪里”，V 负责提供被读取的内容。</p>
+<h4>一个不随机的具体例子</h4>
+<p>句子“白兰地｜看见｜爸爸｜它”的位置编号分别是 0、1、2、3。为了便于理解，假设某一组二维维度规定每向后一个位置旋转 30 度：</p>
+<ul><li>白兰地在位置0：旋转 0×30°=0°。</li><li>看见在位置1：旋转 1×30°=30°。</li><li>爸爸在位置2：旋转 2×30°=60°。</li><li>它在位置3：旋转 3×30°=90°。</li></ul>
+<p>假设“爸爸”的某组原始 K 是 (1,0)。旋转 60° 后，它变成大约 (0.5,0.866)。假设“它”的对应原始 Q 也是 (1,0)，旋转 90° 后变成 (0,1)。二者点积约为 0.866，这一结果会参与注意力分数。</p>
+<pre tabindex="0"><code>“它”与“爸爸”的旋转角度差 = 90°-60° = 30°，来自位置差 3-2 = 1</code></pre>
+<p>同理，“它”和“白兰地”的位置差是3，对应的旋转角度差是90°。所以两个 token 旋转后的 QK 点积会随相对位置变化。</p>
+<aside class="margin-note">关键修正：Q、K 刚生成时，只是每个 token 自己的查询特征和匹配特征；两个 token 的关系要等 Q 与 K 做点积时才真正产生。RoPE 不是让它们随机移动后观察结果，而是在点积前按照固定公式进行一次确定的坐标变换。</aside>
+<h4>为什么使用不同的旋转速度</h4>
+<p>真实模型不是所有维度都按每位置30°旋转。不同的二维维度组使用不同的固定频率：有的像秒针，转得快，擅长区分短距离；有的像分针、时针，转得慢，帮助表达更长距离。多组不同速度共同组成位置特征，避免只用一块钟表转满一圈后产生混淆。</p>
+<p>旋转还有一个重要性质：它改变方向但不改变向量长度，并且两个位置分别旋转后，Q、K 的相对角度只与位置差有关。</p>
+<pre tabindex="0"><code>(R(i)q)^T (R(j)k) = q^T R(j-i) k</code></pre>
+<p>通俗地说：每个 token 都拿着一组“内容指针”。位置 p 决定每根指针按照固定速度走 p 步；两个 token 做 QK 匹配时，指针的角度差把“谁在前、相隔多远”自然带进注意力分数。分数经过 Mask 和 Softmax 后，才成为真正的注意力权重。</p>
+<h4>什么是上下文向量</h4>
+<p>上下文向量是某个 token 经过注意力和 FFN 后，融合当前可见语境形成的内部表示。</p>
+<p>例如“白兰地看见爸爸，它飞过去了”中的“它”和“小球滚到桌下，它被找到了”中的“它”拥有相同初始 Embedding，却会得到不同上下文向量。</p>
+<pre tabindex="0"><code>初始表示 X^0 -&gt; 第1层 X^1 -&gt; 第2层 X^2 -&gt; ... -&gt; 最终表示 X^L</code></pre>
+<p>上下文向量不是逐字保存整段文本，而是对当前任务和预测有用的分布式内部表示。</p></div></details><details class="course-details"><summary>三类数字必须分清</summary><div><h4>模型参数</h4>
+<p>参数是模型长期保存的数字，包括 Embedding、每层的 WQ、WK、WV、WO、FFN 权重、归一化参数和 LM Head。训练时，反向传播计算这些参数应当怎样变化，优化器再更新它们；模型正常回答问题时，这些参数保持不变。</p>
+<h4>临时计算结果</h4>
+<p>X、Q、K、V、注意力分数、注意力权重、隐藏状态和 logits 都由当前输入临时计算。换一句输入，它们就会变化；即使参数完全不动，新输入也会产生新的临时结果。它们不是模型永久记住的一张表。</p>
+<h4>结构与超参数</h4>
+<p>层数、注意力头数量、隐藏维度、FFN 中间宽度、词表大小和上下文长度通常由工程师在训练前决定。普通反向传播只修改参数，不会修改层数、增加注意力头或让模型自己长出新层。</p>
+<pre tabindex="0"><code>长期参数（训练时更新）：Embedding, WQ, WK, WV, WO, FFN, Norm, LM Head
+临时结果（每次输入重算）：X, Q, K, V, Scores, Attention Weights, Hidden States, Logits
+结构超参数（通常预先固定）：Layer Count, Head Count, d_model, d_ff</code></pre>
+<p>例如 WQ 是训练得到的参数，当前句子中“它”的 Q 是临时结果，设置 32 个注意力头则是工程设计。</p></div></details></div>
+      <a class="page-reference" href="transformer-course.pdf#page=6">查看课件第 6 页 ↗</a>
+    </article><article class="lesson" id="layers" aria-labelledby="heading-layers">
+      <header class="lesson-header"><p>逐层计算</p><h2 id="heading-layers" tabindex="-1">Q、K、V 都从同一个向量算出来，为什么要分三份？</h2><div>跟着「它」从投影走到注意力输出，一页一页看当前层怎样更新这个位置。</div></header>
+      <div class="apple-answers"><aside class="apple-answer" id="question-weights" tabindex="-1">
+      <div><span class="apple-icon" aria-hidden="true"></span><h3>WQ 和 Q 有什么区别？</h3><button type="button" class="question-close" data-close="weights" aria-label="收起这个问题">×</button></div>
+      <p>以课件的 Pre-Norm 层为例，先由 X 得到 Z = Norm(X)，再计算 Q = ZWQ。下一层用它自己的投影矩阵。</p>
+    </aside></div>
+
+<section class="lab attention-lab" aria-label="注意力计算实验">
+  <h3>跟着「它」算一次注意力</h3>
+  <p>固定当前这一层的一个头。每翻一步，下一页会接着用上一步的数字。</p>
+  <div class="control-row lab-stages" role="group" aria-label="计算步骤">
+    <button type="button" data-attention="0" aria-pressed="true">QKV</button>
+    <button type="button" data-attention="1" aria-pressed="false">打分</button>
+    <button type="button" data-attention="2" aria-pressed="false">Mask</button>
+    <button type="button" data-attention="3" aria-pressed="false">权重</button>
+    <button type="button" data-attention="4" aria-pressed="false">加权 V</button>
+    <button type="button" data-attention="5" aria-pressed="false">交给下一层</button>
+  </div>
+  <div id="attention-board" class="attention-board" aria-live="polite">
+    <strong id="attention-label">归一化后的向量分别投影成 Q、K、V</strong>
+    <div class="score-ribbon" aria-label="各位置的数值">
+      <div><small>白兰地</small><b></b></div><div><small>看见</small><b></b></div><div><small>爸爸</small><b></b></div><div><small>它</small><b></b></div><div><small>立刻</small><b></b></div><div><small>飞</small><b></b></div>
+    </div>
+    <code id="attention-equation">q_它 = (0, 3)</code>
+    <p id="attention-caption">「它」的 Q 去匹配各位置的 K。V 提供被读取的内容。</p>
+  </div>
+  <div class="lab-next"><button class="ink-button" id="attention-next" type="button">继续算下一步 <span aria-hidden="true">→</span></button></div>
+</section>
+      <div class="lesson-copy"><details class="course-details" open><summary>跟着「它」走完注意力</summary><div><p>把「白兰地看见爸爸，它立刻飞了过去」简化成「白兰地｜看见｜爸爸｜它｜立刻｜飞」。我们在同一层、同一个注意力头里观察「它」。示例用二维向量，省略 RoPE 的数值演算，专心看因果注意力的顺序。RoPE 的手算在第 2 章。</p>
+<ol><li>当前层先从各位置自己的隐藏向量算出 Q、K、V。用下文已有的 Q 投影例子，得到 q_它 = (0,3)。</li><li>假设「白兰地｜看见｜爸爸｜它｜立刻｜飞」的 K 分别是 (0,1)、(0,0)、(1,0)、(0,0)、(0,2)、(0,3)。用 q_它 去点积，得到 [3, 0, 0, 0, 6, 9]。</li><li>每个分数除以 √2。因果 Mask 屏蔽「立刻」「飞」，即使它们的原始分数更高。Softmax 在这行上给出近似权重 [0.735, 0.088, 0.088, 0.088, 0, 0]，四舍五入后总和可能略有误差。</li><li>假设四个可见位置的 V 依次为 (2,0)、(0,1)、(0,2)、(1,1)。用刚才的权重相加，本头在「它」位置的输出约为 (1.56,0.35)。右侧两个位置的权重为零。</li><li>其他头会各算自己的结果。将结果拼接并经过 WO，投影回隐藏维度；将注意力输出加回原向量，经 Norm 与 FFN 加工，再进行一条残差相加。这才得到该层交给下一层的「它」向量。下一层重新从它计算自己的 Q、K、V。</li></ol>
+<aside class="margin-note">手算符号：后文的 QK 数值和加权 V 权重是其他局部示例，用来分别练习投影与汇总。上面五步使用一套连续的演示数字。</aside></div></details><details class="course-details"><summary>一个 Transformer Block</summary><div><p>现代 decoder-only 模型中的一个典型 Pre-Norm Block 可以写成：</p>
+<pre tabindex="0"><code>Y = X + MultiHeadAttention(Norm(X))
+X_next = Y + FFN(Norm(Y))</code></pre>
+<p>“Pre-Norm”表示先归一化，再进入注意力或 FFN。一个 Block 的完整数据流是：</p>
+<ol><li>当前层接收 X。</li><li>Norm(X) 调整每个 token 向量的数值尺度。</li><li>用当前层自己的 WQ、WK、WV 生成 Q、K、V。</li><li>若使用 RoPE，就按 token 位置旋转 Q、K。</li><li>QK 点积并缩放，得到注意力分数。</li><li>加入因果 Mask，再经过 softmax 得到注意力权重。</li><li>权重加权汇总 V；各个头拼接后经过 WO。</li><li>注意力输出与原 X 残差相加，得到 Y。</li><li>Norm(Y) 进入 FFN，完成扩维、非线性激活或门控、压回原维度。</li><li>FFN 输出与 Y 再次残差相加，得到交给下一层的 X_next。</li></ol>
+<pre tabindex="0"><code>X -&gt; Norm -&gt; QKV -&gt; RoPE(Q,K) -&gt; QK^T/scale -&gt; Mask -&gt; softmax -&gt; weighted V -&gt; Concat/WO -&gt; Residual -&gt; Norm -&gt; FFN -&gt; Residual -&gt; X_next</code></pre>
+<h4>四个核心零件</h4>
+<ul><li>Norm 控制向量数值尺度，帮助深层网络稳定训练。</li><li>Multi-Head Attention 让不同 token 动态交换信息。</li><li>Residual Connection 保留原表示，并给梯度提供直接通路。</li><li>FFN 对每个 token 的特征进行非线性加工。</li></ul>
+<p>一层包含一个完整多头注意力模块和一个 FFN。一个“头”只是多头注意力内部的一条注意力分支。</p></div></details><details class="course-details"><summary>Q、K、V 从哪里来</summary><div><p>模型使用投影的输入和三套参数矩阵计算 Q、K、V。设 X 是当前 Block 的输入。以第 3 章的 Pre-Norm Block 为例，先计算 Z = Norm(X)，再把 Z 送进三个投影。</p>
+<pre tabindex="0"><code>Q = Z W_Q    K = Z W_K    V = Z W_V</code></pre>
+<h4>各自的作用</h4>
+<ul><li>Q，Query：当前 token 想寻找什么信息。</li><li>K，Key：当前 token 可以用什么特征被匹配。</li><li>V，Value：当前 token 被关注后实际提供什么内容。</li></ul>
+<p>WQ、WK、WV 是长期训练参数。Q、K、V 是当前输入经过这些参数投影后临时生成的结果。</p>
+<h4>这里的 X 到底是什么</h4>
+<p>X 是当前层收到的每个 token 的内部表示。第一层的 X 来自 Embedding 与位置机制形成的初始表示；第二层的 X 是第一层完整 Block 的输出；第三层再接收第二层的输出，以此类推。</p>
+<p>第 l 层输入 X 已由前 l-1 层处理。当前层先做 Norm，然后用自己的参数重新计算一套 Q、K、V。</p>
+<h4>一个可以手算的 Q 例子</h4>
+<p>为了便于计算，假设当前层中“它”的内部表示只有3维：</p>
+<pre tabindex="0"><code>x_它 = (1, 2, -1)
+WQ = [[1,0], [0,1], [1,-1]]
+q_它 = x_它 WQ = (0,3)</code></pre>
+<p>这个手算把归一化后送入投影的向量简写为 x_它。用它乘以当前层的 WQ，就得到本次计算使用的 q_它。</p>
+<p>再假设同一头中，模型算出的 k_白兰地=(0,2)，k_爸爸=(2,0)，那么：</p>
+<pre tabindex="0"><code>q_它 · k_白兰地 = 0×0 + 3×2 = 6
+q_它 · k_爸爸 = 0×2 + 3×0 = 0</code></pre>
+<p>在还没有加入位置、缩放、Mask 和 softmax 前，这表示当前 q_它 与 k_白兰地 的原始匹配分数更高。真实模型的维度更大，数值也由训练共同塑造，但原理相同。</p>
+<h4>训练前与训练后</h4>
+<p>训练最初，Embedding 和 WQ、WK、WV 通常接近随机，因此 QKV 没有可靠功能。经过预训练后，WQ 学会提取查询特征，WK 学会提取匹配特征，WV 学会提取适合传递的内容。</p>
+<h4>是否分阶段计算</h4>
+<p>同一层中的三个投影使用相同的输入，可以并行计算。工程实现常用一次大矩阵乘法得到 QKV，再拆分。下一层则必须等待上一层输出。</p>
+<aside class="margin-note">准确表述：WQ 是训练得到的查询特征提取规则；Q 是这套规则处理当前 X 后产生的具体查询。</aside></div></details><details class="course-details"><summary>注意力分数、Mask 与 Softmax</summary><div><h4>点积得到匹配分数</h4>
+<p>对于位置 i 和位置 j，模型计算 qi 与 kj 的点积。所有位置一起计算时形成一个 n×n 的分数矩阵。</p>
+<pre tabindex="0"><code>Scores = Q K^T / sqrt(d_head)</code></pre>
+<p>除以 sqrt(d_head) 可以避免维度很高时点积过大，防止 softmax 变得过度极端。</p>
+<p>若模型使用 RoPE，顺序是先生成 Q、K，再旋转 Q、K，然后才做点积和缩放。</p>
+<pre tabindex="0"><code>Q,K -&gt; RoPE -&gt; QK^T / sqrt(d_head) -&gt; Causal Mask -&gt; softmax</code></pre>
+<h4>因果 Mask</h4>
+<p>GPT 训练时会一次看到完整序列，但预测当前位置的下一个 token 时不能读取右侧未来答案。未来位置的分数会被设为负无穷。</p>
+<pre tabindex="0"><code>MaskedScores = Scores + M    未来位置 M = -infinity</code></pre>
+<h4>Softmax</h4>
+<p>Softmax 把分数转换成总和为 1 的权重。例如“它”可能对“白兰地”分配 0.76，对“爸爸”分配 0.15。</p>
+<p>这些权重根据当前输入、当前层和当前注意力头动态计算，并不是模型长期保存的固定参数。</p>
+<aside class="margin-note">为什么不会偷看：因果 Mask 在 softmax 前屏蔽未来位置，因此未来 token 的最终注意力权重为 0。这里有 Causal Mask 和 softmax 两个步骤，并没有一个叫“softmask”的标准步骤。Mask 主要负责信息权限，数值稳定主要由缩放、Norm、初始化和训练策略等机制共同帮助。</aside></div></details><details class="course-details"><summary>加权汇总 V</summary><div><p>得到权重矩阵 A 后，模型使用权重汇总 V。</p>
+<pre tabindex="0"><code>A = softmax(MaskedScores)    H = A V</code></pre>
+<p>若“它”对“白兰地、看见、爸爸、它自己”的权重分别是 0.76、0.03、0.15、0.06：</p>
+<pre tabindex="0"><code>h_它 = 0.76 v_白兰地 + 0.03 v_看见 + 0.15 v_爸爸 + 0.06 v_它</code></pre>
+<p>Q 和 K 决定从哪里读取以及读取多少，V 提供真正被传递的内容。</p>
+<p>注意力得到的 H 还会经过输出投影，并通过残差连接加入原表示，成为更加丰富的上下文表示。</p></div></details><details class="course-details"><summary>多头注意力</summary><div><p>多个头使用相同的注意力算法，使用不同参数。</p>
+<pre tabindex="0"><code>Head_1 = Attention(X WQ_1, X WK_1, X WV_1)
+Head_2 = Attention(X WQ_2, X WK_2, X WV_2)</code></pre>
+<p>两个头读取相同 X，但参数不同，所以会得到不同的 QKV、分数、权重和输出。</p>
+<h4>工程师决定什么</h4>
+<p>工程师决定头数、每头维度和注意力公式，通常不会规定某个头必须识别代词、某个头必须识别动作。</p>
+<p>不同头从不同随机初始化开始。在降低 loss 的训练压力下，它们可能形成不同、重叠或难以用一句话解释的匹配方式。</p>
+<h4>多头结果怎样合并</h4>
+<pre tabindex="0"><code>H = Concat(Head_1, Head_2, ..., Head_h)
+O = H W_O</code></pre>
+<p>WO 混合不同头的信息，并把结果投影回模型隐藏维度。WO 是注意力模块内部参数，与模型末尾的 LM Head 不同。</p>
+<aside class="margin-note">现实情况：不是每个头都有清晰单一职责。训练只要求所有头和其他参数共同降低 loss。</aside>
+<h4>多头与多层不要混淆</h4>
+<ul><li>多头是同一层内部的并行分支：它们同时读取同一个 X，用不同参数从不同表示子空间计算注意力，随后合并。</li><li>多层是前后串联的加工阶段：后一层接收前一层已经更新过的 X，再用自己的一套参数重新计算 QKV。</li></ul>
+<p>通俗地说，多头像同一轮会议里同时工作的多个观察员；多层像会议纪要经过一轮又一轮重新阅读和加工。</p></div></details><details class="course-details"><summary>Norm、残差连接与梯度</summary><div><h4>Norm</h4>
+<p>LayerNorm 或 RMSNorm 调整每个 token 向量的数值尺度，减少深层计算中的数值漂移。现代大模型常使用 RMSNorm。</p>
+<h4>残差连接</h4>
+<pre tabindex="0"><code>y = x + F(x)</code></pre>
+<p>残差结构让一层学习“在原表示上增加什么修正”，而不是彻底重写输入。前向计算中，x 有一条直接通向 y 的路径。</p>
+<h4>为什么帮助梯度传播</h4>
+<pre tabindex="0"><code>dy/dx = 1 + dF(x)/dx</code></pre>
+<p>式子中的 1 来自直接路径。即使 F 内部导数很小，反向传播仍有更直接的路线把训练信号传回前面的层。</p>
+<p>梯度传播方向是 loss → LM Head → 最后一层 → 更早层 → Embedding。前向传播负责计算预测，反向传播负责计算参数该怎样修改。</p>
+<aside class="margin-note">避免误解：数值相加会形成新的混合表示，这是设计目标。模型通过训练学会产生适合加回原表示的修正量。</aside></div></details><details class="course-details"><summary>FFN 前馈神经网络</summary><div><p>注意力负责不同 token 之间交流，FFN 负责每个 token 独立加工自己已经获得的信息。</p>
+<h4>FFN 在哪里</h4>
+<p>每一个 Transformer Block 都有自己的 FFN。它位于多头注意力及其第一次残差连接之后：</p>
+<pre tabindex="0"><code>Attention交流信息 -&gt; 第一次残差 -&gt; Norm -&gt; FFN加工每个token -&gt; 第二次残差</code></pre>
+<p>注意力回答“这个 token 应该从其他位置读取什么”，FFN 接着回答“读到这些信息后，怎样在当前 token 内部提取、组合和改写特征”。</p>
+<h4>经典形式</h4>
+<pre tabindex="0"><code>FFN(x) = activation(x W1 + b1) W2 + b2</code></pre>
+<p>典型过程是从隐藏维度扩展到更高维，经过非线性激活，再压回原维度。例如：</p>
+<pre tabindex="0"><code>4096 -&gt; 11008 -&gt; activation -&gt; 4096</code></pre>
+<h4>为什么扩维</h4>
+<p>更大的中间空间允许网络形成更多候选特征组合。一个 token 经过注意力后可能同时携带主体、动作、位置和语气信息，FFN 可以重新组合这些特征。</p>
+<h4>为什么必须非线性</h4>
+<p>连续线性变换可以合并成一次线性变换。加入 GELU、SiLU 等激活函数后，网络才能表达复杂条件关系。</p>
+<h4>现代 SwiGLU</h4>
+<pre tabindex="0"><code>FFN(x) = [SiLU(x W_gate) elementwise_mul (x W_up)] W_down</code></pre>
+<p>一条分支生成候选特征，另一条生成门控，随后逐元素相乘并压回模型隐藏维度。</p>
+<aside class="margin-note">位置独立：FFN 对每个 token 单独使用同一套参数，不负责 token 之间的信息交流。</aside></div></details><details class="course-details"><summary>层的堆叠与最终上下文向量</summary><div><pre tabindex="0"><code>X^0 -&gt; Block_1 -&gt; X^1 -&gt; Block_2 -&gt; X^2 -&gt; ... -&gt; Block_L -&gt; X^L</code></pre>
+<p>模型可以有 12、24、32、80 或超过 100 层。层数由工程师预先决定。通常每层拥有独立的 WQ、WK、WV、WO、FFN 和 Norm 参数。</p>
+<p>同一个 token 在不同层拥有不同当前向量。堆叠多层的目的不只是“换不同视角”，还包括在上一层已经建立的关系之上继续建立更复杂的关系：一层先汇集局部线索，下一层可以利用这些已汇集的结果形成更长程、更抽象的组合。</p>
+<p>各层使用相似的结构公式，但通常拥有不同参数，因此不是把完全相同的计算结果机械重复。早期层、中间层和高层可能形成不同复杂度的关系，但不能硬性规定某一层只负责某一种功能。</p>
+<p>训练时通常只有模型最终输出产生的总体 loss。这个 loss 通过反向传播同时影响所有层，而不是第一层算一个 loss、第二层再算另一个 loss。所有层共同学习怎样配合降低最终预测误差。</p>
+<p>在 GPT 的因果注意力中，某个位置的最终向量融合了该位置及其左侧可见前文中有助于预测的信息。最后位置的向量通常用于预测下一个 token。</p>
+<p>例如“白兰地喜欢吃”中，“吃”的最终向量已经融合“白兰地、喜欢、吃”以及三者之间的关系，因此可以用于预测“小米”。</p></div></details></div>
+      <a class="page-reference" href="transformer-course.pdf#page=9">查看课件第 9 页 ↗</a>
+    </article><article class="lesson" id="logits" aria-labelledby="heading-logits">
+      <header class="lesson-header"><p>词表打分</p><h2 id="heading-logits" tabindex="-1">最后一个位置自己的 V 会送进 LM Head 吗？</h2><div>在「白兰地｜喜欢｜吃」里，跟着最后一个位置看 V、注意力输出和最终隐藏向量各自去了哪里。</div></header>
+      <div class="apple-answers"><aside class="apple-answer" id="question-softmax" tabindex="-1">
+      <div><span class="apple-icon" aria-hidden="true"></span><h3>为什么会有两次 Softmax？</h3><button type="button" class="question-close" data-close="softmax" aria-label="收起这个问题">×</button></div>
+      <p>注意力里的权重决定各个 V 贡献多少。词表概率则是给「小米」「苹果」等候选 token 的。</p>
+    </aside></div>
+
+      <div class="lesson-copy"><details class="course-details" open><summary>生成时具体取哪一个向量</summary><div><p>提示词是「白兰地｜喜欢｜吃」。GPT 完成所有层后，每个位置都已有最终隐藏向量。「吃」是最后一个位置，能通过因果自注意力参考前面的「白兰地」「喜欢」，也能参考自己。生成时，用这个位置的最终向量预测它后面的 token。</p>
+<p>每一层里「吃」都有当前层自己的 V，而且一层内的其他位置也有自己的 V。多个位置的 V 按权重汇总后，还要经历多头输出投影 WO、残差、FFN 和后续层。最终交给 LM Head 的「吃」向量是这一整套处理的结果。</p>
+<h4>从词表分数到下一步</h4>
+<p>假设演示词表只有「小米、苹果、。」三项，某一步的 logits 是 [2,1,0]。对这三个分数做 Softmax，得到约 [66.5%,24.5%,9.0%]。若系统选中「小米」，序列就变成「白兰地｜喜欢｜吃｜小米」，下一步改用「小米」位置的最终向量预测。</p>
+<ul><li>注意力里的 Softmax：对可见的 token 位置分配权重，决定每个 V 的贡献。</li><li>输出端的 Softmax：对词表候选的 logits 计算概率，供选下一项时使用。</li></ul>
+<aside class="margin-note">记住三个输出：V 是单个位置在某个头里提供的内容，注意力输出是加权汇总结果，最终隐藏向量是走完所有层后送入 LM Head 的输入。</aside></div></details><details class="course-details"><summary>LM Head 与 Weight Tying</summary><div><p>模型先取得最后一层输出 X^L，通常再经过最终 Norm，得到 H_final。预测下一个 token 时，使用当前最后位置的最终隐藏向量 h_last，通过 LM Head 得到词表中每个 token 的 logit。</p>
+<pre tabindex="0"><code>H_final = FinalNorm(X^L)    logits = h_last W_vocab</code></pre>
+<p>进入 LM Head 的不是“最后一个 V”。V 只是每层注意力内部的临时内容向量；经过注意力汇总、WO、残差、FFN以及后续很多层后，最终送入 LM Head 的是最后隐藏状态 X^L 或它经过最终 Norm 的结果。</p>
+<p>如果词表有 100000 个 token，就会得到 100000 个分数。模型事先不知道正确答案，所以需要给全部候选 token 打分。</p>
+<h4>Weight Tying</h4>
+<p>输入端的 Embedding 表完成 token ID → 向量，输出端的词表矩阵完成最终向量 → token 分数。许多模型让二者共享参数。</p>
+<pre tabindex="0"><code>W_vocab = E^T</code></pre>
+<p>这可以减少参数，也让输入表示和输出判断共享同一个表示空间。Weight tying 是常见设计，并非 Transformer 必须具备。</p></div></details></div>
+      <a class="page-reference" href="transformer-course.pdf#page=15">查看课件第 15 页 ↗</a>
+    </article><article class="lesson" id="training" aria-labelledby="heading-training">
+      <header class="lesson-header"><p>训练</p><h2 id="heading-training" tabindex="-1">整句话已经输入，为什么预测时看不到下一词？</h2><div>完整原文提供训练目标。因果 Mask 控制各位置可见的内容，预测完成后才用原文里的答案算误差。</div></header>
+      <div class="apple-answers"><aside class="apple-answer" id="question-mask" tabindex="-1">
+      <div><span class="apple-icon" aria-hidden="true"></span><h3>完整原文为什么不会泄漏？</h3><button type="button" class="question-close" data-close="mask" aria-label="收起这个问题">×</button></div>
+      <p>「在」能参考「小鸟」和自己。原文里的「唱歌」在训练张量中，但权重被 Mask 屏蔽。训练程序另取它计算 Loss。</p>
+    </aside></div>
+
+<section class="lab branch-lab" aria-label="训练与生成对照实验">
+  <h3>同一句话，两条路径</h3>
+  <p>点击一个位置，看看预测时可见的内容，再看两条路径拿预测去做什么。</p>
+  <div class="control-row" role="group" aria-label="选择观察位置">
+    <button data-branch="bird" type="button" aria-pressed="false">小鸟</button>
+    <button data-branch="at" type="button" aria-pressed="true">在</button>
+  </div>
+  <div class="branch-pair" aria-live="polite">
+    <div><h4>训练</h4><p>模型可用 <strong data-input>小鸟｜在</strong></p><p>拿原文的 <strong data-target>唱歌</strong> 算 Loss。训练时多个位置可以并行计算。</p></div>
+    <div><h4>使用</h4><p>模型可用 <strong data-input>小鸟｜在</strong></p><p>假设选出 <strong data-target>唱歌</strong>，把它接到末尾。模型权重固定。</p></div>
+  </div>
+</section>
+      <div class="lesson-copy"><details class="course-details" open><summary>小鸟在唱歌</summary><div><p>用演示分词「小鸟｜在｜唱歌」。训练时可以把已知文本放进同一个张量，并行算多个位置。Mask 保证每个位置只能用自己与左侧。正确答案由训练程序从原文另取，用于计算误差。</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">当前的位置</th><th scope="col">能用的内容</th><th scope="col">训练目标</th></tr></thead><tbody><tr><td>小鸟</td><td>小鸟</td><td>在</td></tr><tr><td>在</td><td>小鸟、在</td><td>唱歌</td></tr><tr><td>唱歌</td><td>小鸟、在、唱歌</td><td>结束标记（如果有）</td></tr></tbody></table></div>
+<p>如果样本到「唱歌」为止，末位没有下一项可供监督。</p>
+<p>生成时给 GPT「小鸟｜在」，Prefill 用相同的 Decoder 处理提示词，并从最后一个位置得到第一个新 token 的分数。假设选中「唱歌」，就追加它。下一步的 Decode 处理「唱歌」，复用此前缓存的 K 和 V，预测可能的句号、结束标记或更多词。模型参数固定，改变的是上下文和临时计算结果。</p></div></details><details class="course-details"><summary>预训练、Loss 与反向传播</summary><div><p>训练文本“白兰地｜喜欢｜吃｜小米”会形成多个预测任务：</p>
+<ul><li>看到“白兰地”预测“喜欢”。</li><li>看到“白兰地 喜欢”预测“吃”。</li><li>看到“白兰地 喜欢 吃”预测“小米”。</li></ul>
+<p>实现时通常使用 teacher forcing：把整段已知训练序列一次送入模型。因果 Mask 保证每个位置只能读取自身与左侧，LM Head 同时为多个位置给出预测。GPU 因而可以并行计算这些训练位置，而不必像实际生成那样逐 token 等待。</p>
+<h4>Loss</h4>
+<pre tabindex="0"><code>Loss = 所有有效预测位置的 CrossEntropy(logits, 正确的下一个 token)</code></pre>
+<p>正确 token 概率越低，对应位置的 loss 越大。所有层完成前向计算、LM Head 给出 logits 后，才汇总得到这一批数据的总体 loss。反向传播再利用链式法则计算这个总体 loss 对每个参数的梯度。</p>
+<h4>参数更新</h4>
+<pre tabindex="0"><code>theta_new = theta_old - learning_rate * gradient</code></pre>
+<p>更新范围包括 Embedding、所有层的 QKV 投影、WO、FFN、Norm 和 LM Head。一次变化很小，海量样本和训练步骤共同塑造参数。普通训练不会根据梯度自动修改层数、头数或隐藏维度。</p>
+<p>如果某种关注关系提高正确 token 概率，梯度会推动相关参数向有利方向变化。所谓“模型自己学会”，是优化过程找到能降低 loss 的参数结构。</p>
+<h4>如果 Loss 一直很大怎么办</h4>
+<p>“再多跑一层 FFN”通常不是运行时的补救办法，因为层数已经固定。训练者会检查学习率是否合适、标签是否错位、因果 Mask 是否正确、梯度是否消失或爆炸、数据是否有问题、训练步数是否不足，以及模型容量是否匹配任务。</p>
+<p>一个常用诊断是让模型尝试过拟合极小的一批数据：如果连极小样本都学不会，往往是实现或优化设置有问题。还要区分训练 loss 和验证 loss：训练 loss 降而验证 loss 上升，常表示过拟合；两者都高则更可能是欠拟合、数据或训练流程问题。</p></div></details><p class="related"><a href="#generation" data-stage="generation">去对照生成路径 →</a></p></div>
+      <a class="page-reference" href="transformer-course.pdf#page=16">查看课件第 16 页 ↗</a>
+    </article><article class="lesson" id="generation" aria-labelledby="heading-generation">
+      <header class="lesson-header"><p>生成</p><h2 id="heading-generation" tabindex="-1">第一个新 token 从哪来？第二个又怎么算？</h2><div>用「小鸟｜在」作为提示词，分清 Prefill、后续 Decode 与 KV Cache。</div></header>
+      <div class="apple-answers"><aside class="apple-answer" id="question-cache" tabindex="-1">
+      <div><span class="apple-icon" aria-hidden="true"></span><h3>KV Cache 缓存了什么？</h3><button type="button" class="question-close" data-close="cache" aria-label="收起这个问题">×</button></div>
+      <p>Prefill 通常给出第一个新 token 的 logits。之后当前新 token 的 Q 查询历史及当前 K，再汇总历史及当前 V。</p>
+    </aside></div>
+
+      <div class="lesson-copy"><details class="course-details" open><summary>GPT 聊天、推理与 KV Cache</summary><div><h4>问题和回答在同一个序列中</h4>
+<pre tabindex="0"><code>&lt;system&gt; 系统规则   &lt;user&gt; 用户问题   &lt;assistant&gt;</code></pre>
+<p>模型先预测回答第一个 token，再把它追加到序列，继续预测后续 token。角色标记帮助模型区分规则、问题和回答。</p>
+<p>因此 GPT 的输出机制确实是一种文本接龙，但每次接龙前都经过了多层上下文计算。</p>
+<h4>训练与真实使用的区别</h4>
+<ul><li>训练：有正确的下一个 token，可计算 loss、梯度并更新参数。</li><li>推理：只有前文，没有标准答案可供即时反向传播；模型只做前向计算，参数保持冻结。</li><li>两者都会动态计算 X、Q、K、V、注意力权重和 logits。固定的是参数，不是中间结果。</li></ul>
+<p>真实使用时，即使某次回答实际上很差，模型也不会因为这一次生成自动修改参数。对话中的新信息仍可通过输入上下文影响后续输出，这叫上下文内学习或条件化；它不等于权重参数已经被训练更新。</p>
+<h4>训练时为什么不会泄漏答案</h4>
+<p>完整回答可以一次进入训练张量，但因果 Mask 让每个位置看不到右侧未来 token。这样既能并行训练，又不会偷看当前预测目标。</p>
+<h4>Prefill 与 Decode</h4>
+<p>Prefill 先处理已经存在的系统指令、历史对话和用户问题，通常也给出第一个新 token 的 logits。Decode 随后处理新追加的 token，逐步得到后续 token 的预测。</p>
+<h4>KV Cache</h4>
+<p>每层会缓存历史 token 的 K、V。新 token 只需计算自己的 Q、K、V，用新 Q 查询历史与当前 K，并按权重汇总历史与当前 V，再把新 K、V 加入缓存。</p>
+<p>过去的 Q 通常不必缓存，因为新 token 需要使用自己的 Q，过去 token 已经完成了各自的查询。</p>
+<p>KV Cache 只是复用历史中间结果以加速推理，不会修改模型参数，因此不是学习机制。</p>
+<h4>怎样选择下一个 Token</h4>
+<p>模型得到的是概率分布。系统可以贪心选择概率最高的 token，也可以使用 temperature、top-k、top-p 等采样方法在合理候选中抽取，因此最终输出不一定永远选择概率最大的 token。</p></div></details><p class="related"><a href="#training" data-stage="training">← 回看训练路径</a></p></div>
+      <a class="page-reference" href="transformer-course.pdf#page=17">查看课件第 17 页 ↗</a>
+    </article><article class="lesson" id="review" aria-labelledby="heading-review">
+      <header class="lesson-header"><p>复盘与应用</p><h2 id="heading-review" tabindex="-1">检索到的资料怎样进入 GPT？</h2><div>复盘分词、逐层计算和输出，再用一个 RAG 查询把检索向量和生成接起来。</div></header>
+      <div class="apple-answers"><aside class="apple-answer" id="question-rag-embedding" tabindex="-1">
+      <div><span class="apple-icon" aria-hidden="true"></span><h3>Late Chunking 为什么先读全文？</h3><button type="button" class="question-close" data-close="rag-embedding" aria-label="收起这个问题">×</button></div>
+      <p>先得到带更广上下文的 token 向量，再按 Chunk 边界池化。后段「它」的表示就有机会吸收前段「白兰地」的信息。</p>
+    </aside></div>
+
+      <div class="lesson-copy"><details class="course-details" open><summary>完整示例</summary><div><p>示例句：白兰地看见爸爸，它立刻飞了过去。</p>
+<h4>训练时</h4>
+<ol><li>Tokenizer 切分句子并分配 token ID。</li><li>Embedding 根据 ID 取出初始向量，位置编码加入顺序信息。</li><li>每层用当前 X 和当前训练步骤的 WQ、WK、WV 生成临时 Q、K、V。</li><li>各注意力头先对 Q、K 应用 RoPE，再用 QK 点积、缩放、因果 Mask 和 softmax 产生动态权重。</li><li>权重加权汇总 V，形成每个位置读取到的上下文信息。</li><li>多个头拼接后经过 WO，结果与原表示残差相加。</li><li>FFN 对每个 token 独立进行扩维、非线性加工和压缩，再次残差相加。</li><li>很多层反复更新，形成最终上下文向量。</li><li>最后一层 X^L 经过最终 Norm 和 LM Head，为所有训练位置产生全词表 logits。</li><li>将各位置预测与真实下一个 token 比较，汇总交叉熵 loss。</li><li>反向传播计算参数梯度，优化器更新 Embedding、各层注意力、FFN、Norm 和 LM Head 等参数。</li></ol>
+<h4>推理生成时</h4>
+<ol><li>系统指令、历史对话和用户问题被 token 化，并完成一次 Prefill。</li><li>最后位置的最终隐藏状态经过 LM Head，得到下一个 token 的概率分布。</li><li>系统用贪心或采样选择一个 token，把它追加到序列。</li><li>参数不变；模型利用 KV Cache 计算新 token 的临时 X、Q、K、V 和后续隐藏状态。</li><li>重复前向计算，直到遇到停止条件。</li></ol>
+<pre tabindex="0"><code>训练：文字 -&gt; token/ID -&gt; Embedding/Position -&gt; [Attention + FFN] x L -&gt; Final Norm/LM Head -&gt; Loss -&gt; Backprop -&gt; 更新参数
+推理：前文 -&gt; 同一网络前向计算 -&gt; Final Norm/LM Head -&gt; 选择 token -&gt; 追加 -&gt; 继续前向计算</code></pre>
+<aside class="margin-note">最核心一句：Transformer 通过注意力让 token 交流，通过 FFN 加工特征，通过残差和归一化稳定深层计算，最后把上下文向量转换成下一个 token 的概率。</aside></div></details><details class="course-details"><summary>接回 RAG</summary><div><p>举例，知识库里有一段「白兰地是虎皮鹦鹉，最喜欢小米」，用户问「白兰地是什么鸟？」。典型向量检索会用专门训练的 Embedding 模型，将查询和知识段落各自表示为可比较的向量。采用 BERT 一类的 Encoder 时，可先得到每个 token 的上下文向量，再用池化（例如平均）把它们汇总成一段的检索向量。找到相关资料后，将资料和用户问题一起放进 GPT 的提示词，由 Decoder 生成回答。</p>
+<p>Embedding 层负责从 token ID 取初始向量。这里检索用的 Embedding 模型负责从整段文字得到用于比较的表示。Late Chunking 把顺序再往前推一步：先处理整篇文本得到包含更广上下文的 token 向量，再按 Chunk 边界池化。这样，一个 Chunk 里的「它」在形成表示时可以先参考前段的「白兰地」。</p></div></details><details class="course-details"><summary>延伸：现代架构中的常见变化</summary><div><p>许多现代 GPT 类模型用 RoPE 表达位置，用 RMSNorm 和 Pre-Norm 稳定训练，用 SwiGLU 实现 FFN。GQA 或 MQA 让多个 Q 头共享某些 K、V 投影，减少 KV Cache 开销。标准注意力对长度 n 的序列计算约 n² 对位置关系，计算成本近似平方增长。某些实现可以避免显式存储整张 n×n 分数矩阵。</p></div></details><details class="course-details"><summary>自测三问</summary><div><ol><li>为什么 BERT 能用「美国」更新前面的「去」，而 GPT 可以在句末用上两者？分别说明自注意力的可见范围。</li><li>GPT 的最后一个位置先算出了 V。V 还要经历什么，最后送进 LM Head 的是什么？</li><li>完整训练句子并行输入时，「在」的位置怎样预测「唱歌」？训练程序又在哪里使用正确答案？</li></ol></div></details><details class="course-details"><summary>术语速查</summary><div><ul><li>Embedding：token ID 对应的可训练初始向量。</li><li>上下文向量：某个 token 融合当前语境后的内部表示。</li><li>WQ、WK、WV：训练得到的长期投影参数。</li><li>Q、K、V：当前输入通过投影参数临时产生的向量。</li><li>注意力权重：当前 QK 分数经过 Mask 和 softmax 得到的动态比例。</li><li>Head：一套独立参数的注意力计算分支。</li><li>WO：混合多头结果的注意力输出投影。</li><li>FFN：逐 token 的非线性特征加工网络。</li><li>残差连接：原表示加上本层修正，并帮助梯度传播。</li><li>LM Head：把最终向量转换成全词表 logits。</li><li>因果 Mask：阻止当前位置读取未来 token。</li><li>KV Cache：缓存历史 K、V，减少逐 token 生成的重复计算。</li></ul>
+<h4>常见误解纠正</h4>
+<ul><li>不是“得到最终 QKV 后进入 LM Head”，而是每层都临时计算 QKV，最终得到 X^L。</li><li>LM Head 使用最后隐藏状态 X^L 或 FinalNorm(X^L)，不是最后一个 V。</li><li>FFN 位于每一个 Transformer Block 内部，不是全部注意力层之后才统一执行一次。</li><li>注意力中是 Causal Mask 后接 softmax，不存在一个名为“softmask”的标准步骤。</li><li>Loss 的梯度更新模型参数，不会在普通训练中自动修改层数和头数。</li><li>训练可以在因果 Mask 保护下并行计算多个位置；推理生成则逐 token 进行。</li><li>推理只做前向计算并冻结参数，但每次仍会重新产生动态中间表示。</li><li>生成可以选最大概率，也可以采样，因此不一定总是 argmax。</li></ul></div></details></div>
+      <a class="page-reference" href="transformer-course.pdf#page=18">查看课件第 18 页 ↗</a>
+    </article></div>
+      </div>
+    </section>
+  </main>
+  <footer class="topbar"><a href="/#ai-notes">← 返回作品集</a><span>Lauren Fang · AI 学习笔记</span><a href="transformer-course.pdf">完整课件 ↗</a></footer>
+</body></html>
