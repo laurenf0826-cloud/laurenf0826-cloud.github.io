@@ -12,7 +12,7 @@
     body:before{content:"";position:fixed;z-index:10;inset:0;pointer-events:none;opacity:.12;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.42'/%3E%3C/svg%3E")}
     main{padding:clamp(28px,4vw,64px)}
     .masthead{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:clamp(28px,4vw,58px);padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.24)}
-    .masthead p{margin:0;font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase}.masthead h1{max-width:none;min-width:0;margin:0;font:400 clamp(18px,2.1vw,36px)/1.4 var(--serif);letter-spacing:-.035em;text-align:right}.headline-line{display:block;white-space:nowrap}.masthead-label{flex-shrink:0}.masthead h1 em{font-style:normal;color:#cbe857}
+    .masthead p{margin:0;font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase}.masthead h1{max-width:none;min-width:0;margin:0;font:400 clamp(18px,2.1vw,36px)/1.4 var(--serif);letter-spacing:-.035em;text-align:right}.masthead-copy{min-width:0;text-align:right}.masthead .masthead-subtitle{margin:8px 0 0;color:#c4c6bb;font:400 clamp(15px,1.2vw,19px)/1.6 var(--sans);letter-spacing:normal;text-transform:none}.masthead-label{flex-shrink:0}.masthead h1 em{font-style:normal;color:#cbe857}
     .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
     .card{position:relative;isolation:isolate;min-height:min(660px,72svh);overflow:hidden;border:1px solid rgba(255,255,255,.3);background:#222;transition:transform .45s cubic-bezier(.2,.8,.2,1),border-color .3s}
     .card:focus-visible{outline:3px solid #d6ee55;outline-offset:3px}.card:hover{z-index:3;transform:translateY(-8px);border-color:rgba(255,255,255,.78)}
@@ -48,8 +48,8 @@
     .owner-label{margin-right:.45em;color:#aaa99c;font-size:11px}.owner-email{margin:0;color:#dedbd0;font-size:13px;overflow-wrap:anywhere}
     .footer-index{color:rgba(255,255,255,.52);font-size:9px;letter-spacing:.13em;text-transform:uppercase;text-align:right}
     @media(max-width:1050px){.cards{grid-template-columns:1fr 1fr}.taste{grid-column:1/-1}.taste{min-height:560px}.taste .content{max-width:600px}}
-    @media(max-width:1000px){.masthead{align-items:flex-start;flex-direction:column;gap:20px}.masthead h1{text-align:left;font-size:clamp(17px,2.65vw,30px)}}
-    @media(max-width:600px){.headline-line{white-space:normal}.masthead h1{font-size:clamp(22px,5vw,29px)}}
+    @media(max-width:1000px){.masthead{align-items:flex-start;flex-direction:column;gap:20px}.masthead-copy{text-align:left}.masthead h1{text-align:left;font-size:clamp(23px,3.2vw,32px)}}
+    @media(max-width:600px){.masthead h1{font-size:clamp(22px,5vw,29px)}}
     @media(max-width:700px){main{padding:18px}.masthead{align-items:start;flex-direction:column}.masthead h1{text-align:left}.cards{grid-template-columns:1fr}.taste{grid-column:auto}.card{min-height:610px}.footer{align-items:flex-start;flex-direction:column;gap:14px}.footer-index{text-align:left}}
     @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.card,.card img,.open i,.demo-entry,.demo-open i,.note-entry,.note-entry-arrow{transition:none!important}.demo-entry:hover,.demo-entry:hover .demo-open i,.note-entry:hover .note-entry-arrow{transform:none}}
   </style>
@@ -58,7 +58,10 @@
   <main>
     <header class="masthead">
       <div class="masthead-label"><p>Selected Works · AI Product Design</p><nav aria-label="页面导航"><a href="#product-demo">产品 Demo ↓</a><a href="#ai-notes">AI 学习笔记 ↓</a></nav></div>
-      <h1><span class="headline-line">从人类真实的思考模式出发，以心理学知识体系为框架</span><span class="headline-line">把模糊经验转化为<em>可验证、可复用</em>的系统</span></h1>
+      <div class="masthead-copy">
+        <h1>从人类<em>真实的思考路径</em>出发</h1>
+        <p class="masthead-subtitle">以心理学知识体系为框架，把模糊经验转化为可验证、可复用的 AI 工作流。</p>
+      </div>
     </header>
 
     <section class="cards" aria-label="Agent 工作流作品集">
