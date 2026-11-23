@@ -40,6 +40,9 @@
     .note-entry p{margin:8px 0 0;color:#c4c6bb;font-size:14px;line-height:1.55}
     .note-entry-arrow{display:grid;place-items:center;width:42px;height:42px;border:1px solid rgba(237,234,223,.5);border-radius:50%;background:rgba(17,19,15,.5);font:20px var(--sans);transition:transform .2s ease,border-color .2s ease,color .2s ease}
     .note-entry:hover{border-color:rgba(237,234,223,.55)}.note-entry:hover .note-entry-arrow{transform:translateX(3px);color:#d6ee55;border-color:#d6ee55}
+    .note-entry + .note-entry{margin-top:14px}
+    .agent-note .note-entry-art img{object-position:center 31%}
+    .note-format{display:inline-block;margin-top:8px;font-size:13px;color:var(--paper)}
     .note-entry:focus-visible,.masthead-label a:focus-visible{outline:3px solid #d6ee55;outline-offset:4px}
     @media(max-width:860px){.demo-entry{min-height:790px}.demo-entry:before{display:none}.demo-visual:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 0%,rgba(15,18,15,.08) 40%,rgba(15,18,15,.64) 76%,#0f120f 100%)}.demo-visual{inset:0 0 auto;height:52%;}.demo-visual>img{object-fit:cover;object-position:center top}.demo-copy{width:100%;min-height:480px;margin-top:310px;padding:40px}.demo-description{max-width:58ch}}
     @media(max-width:620px){.demo-heading{align-items:start;flex-direction:column;gap:8px}.demo-entry{min-height:800px}.demo-visual{height:36%}.demo-copy{min-height:540px;margin-top:248px;padding:30px 22px}.demo-copy h3{font-size:clamp(39px,12vw,54px)}.demo-description{font-size:13px}.demo-alert{font-size:18px}.note-entry{min-height:112px;gap:12px;padding:12px 15px}.note-entry-art{width:37%}.note-entry h3{font-size:clamp(22px,5vw,28px)}.note-entry p{max-width:26ch;margin-top:6px;font-size:12px}.note-entry-arrow{width:34px;height:34px;font-size:16px}}
@@ -141,6 +144,11 @@
       <a class="note-entry" href="/notes/transformer/">
         <div class="note-entry-art" aria-hidden="true"><img src="assets/transformer-terrain.webp" alt="" width="966" height="998" loading="lazy"></div>
         <div class="note-entry-text"><h3>Transformer 架构</h3><p>从分词、注意力到生成，跟着一句话走完整个流程。</p></div>
+        <span class="note-entry-arrow" aria-hidden="true">↗</span>
+      </a>
+      <a class="note-entry agent-note" href="/notes/reliable-agents.pdf" type="application/pdf">
+        <div class="note-entry-art" aria-hidden="true"><img src="assets/reliable-agents-cover.jpg" alt="" loading="lazy"></div>
+        <div class="note-entry-text"><h3>从文字接龙到可靠的 Agent 系统</h3><p>从生成回答到调用工具，理解 Agent 如何执行任务、重试并校验结果。</p><span class="note-format">阅读 PDF · 69 页</span></div>
         <span class="note-entry-arrow" aria-hidden="true">↗</span>
       </a>
     </section>
